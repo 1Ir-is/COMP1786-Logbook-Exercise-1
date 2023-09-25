@@ -6,16 +6,20 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView calculatingView;
-    TextView resultsView;
+    TextView calculatingView; // TextView to display the current calculation
+    TextView resultsView; // TextView to display the result
 
-    String calculating = "";
+    String calculating = ""; // Stores the current calculation expression
+    String formula = ""; // Stores the formula for calculation
+    String tempFormula = ""; // Temporary formula for manipulation
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,32 +35,131 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setCalculating(String givenValues){
+
+        // Update the calculation expression when a button is pressed
         calculating = calculating + givenValues;
+
+        // Display the calculation expression on the TextView
         calculatingView.setText(calculating);
     }
 
-    public void equalsOnClick(View view) {
+    public void equalsOnClick(View view)
+    {
         Double result = null;
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("rhino");
+        checkForPowerOf(); // Check and process power operator (^)
 
         try {
-            result = (double)engine.eval(calculating);
-        } catch (ScriptException e) {
+            result = (double)engine.eval(formula); // Calculate the formula
+
+            // Checks whether the result of the calculation is infinity or not a number
+            if (Double.isInfinite(result) || Double.isNaN(result)) {
+                Toast.makeText(this, "Can't divide by zero.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        } catch (ScriptException e)
+        {
             Toast.makeText(this, "Invalid Input", Toast.LENGTH_SHORT).show();
         }
 
-        if (result != null){
+        if(result != null){
+            // Display the calculation result on the TextView
             resultsView.setText(String.valueOf(result.doubleValue()));
         }
     }
 
-    public void clearOnClick(View view) {
-        calculatingView.setText("");
-        calculating = "";
-        resultsView.setText("");
+    private void checkForPowerOf()
+    {
+        ArrayList<Integer> indexOfPowers = new ArrayList<>();
+        for(int i = 0; i < calculating.length(); i++)
+        {
+            if (calculating.charAt(i) == '^')
+                // Find the positions of the power operator (^) in the expression
+                indexOfPowers.add(i);
+        }
+
+        // Copy the expression to the formula
+        formula = calculating;
+
+        // Copy the expression to the temporary formula
+        tempFormula = calculating;
+
+        for(Integer index: indexOfPowers)
+        {
+            changeFormula(index); // Modify the formula for power operators
+        }
+
+        // Update the calculation formula
+        formula = tempFormula;
     }
 
+
+    private void changeFormula(Integer index) {
+        String numberLeft = "";
+        String numberRight = "";
+
+        for (int i = index + 1; i < calculating.length(); i++) {
+            char currentChar = calculating.charAt(i);
+            if (isNumeric(currentChar) || (currentChar == '.' && !numberRight.contains("."))) {
+                numberRight += currentChar; // Build the right-hand side of the power operator
+            } else {
+                break;
+            }
+        }
+
+        for (int i = index - 1; i >= 0; i--) {
+            char currentChar = calculating.charAt(i);
+            if (isNumeric(currentChar) || (currentChar == '.' && !numberLeft.contains("."))) {
+                numberLeft = currentChar + numberLeft; // Build the left-hand side of the power operator
+            } else {
+                break;
+            }
+        }
+
+        // Build the original expression
+        String original = numberLeft + "^" + numberRight;
+
+        // Build the modified expression
+        String changed = "Math.pow(" + numberLeft + "," + numberRight + ")";
+
+        // Replace the original expression with the modified one
+        tempFormula = tempFormula.replace(original, changed);
+    }
+
+
+    private boolean isNumeric(char c)
+    {
+        return (c <= '9' && c >= '0') || c == '.';
+    }
+
+
+    public void clearOnClick(View view) {
+
+        // Clear the calculation expression on the TextView
+        calculatingView.setText("");
+
+        // Clear the calculation expression
+        calculating = "";
+
+        // Clear the result on the TextView
+        resultsView.setText("");
+
+        leftBracket = true;
+
+    }
+
+    boolean leftBracket = true;
     public void bracketsOnClick(View view) {
+        if (leftBracket){
+            // Add an opening bracket to the calculation expression
+            setCalculating("(");
+            leftBracket = false;
+        }
+        else {
+            // Add a closing bracket to the calculation expression
+            setCalculating(")");
+            leftBracket = true;
+        }
     }
 
     public void powerOfOnClick(View view) {
