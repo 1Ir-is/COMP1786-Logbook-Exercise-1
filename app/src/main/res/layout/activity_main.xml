@@ -23,12 +23,12 @@
             android:paddingEnd="30dp"
             android:gravity="center_vertical"
             android:textColor="@color/white"
-            android:text="2 + 3"
+            android:text=""
             android:layout_gravity="end"
             android:textAlignment="textEnd"
             android:textSize="30sp"
             tools:ignore="NestedWeights,RtlCompat,RtlSymmetry"
-            android:id="@+id/workingTextView"/>
+            android:id="@+id/calculatingTextView"/>
 
 
         <TextView
@@ -38,7 +38,7 @@
             android:paddingEnd="30dp"
             android:gravity="center_vertical"
             android:textColor="@color/white"
-            android:text="5"
+            android:text=""
             android:layout_gravity="end"
             android:textAlignment="textEnd"
             android:textSize="45sp"
