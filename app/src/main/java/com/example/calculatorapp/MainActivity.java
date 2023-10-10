@@ -43,30 +43,45 @@ public class MainActivity extends AppCompatActivity {
         calculatingView.setText(calculating);
     }
 
-    public void equalsOnClick(View view)
-    {
-        Double result = null;
+    public void equalsOnClick(View view) {
+        Object result = null;
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("rhino");
         checkForPowerOf(); // Check and process power operator (^)
 
         try {
-            result = (double)engine.eval(formula); // Calculate the formula
+            result = engine.eval(formula); // Calculate the formula
 
             // Checks whether the result of the calculation is infinity or not a number
-            if (Double.isInfinite(result) || Double.isNaN(result)) {
+            if (Double.isInfinite((double) result)) {
                 Toast.makeText(this, "Can't divide by zero.", Toast.LENGTH_SHORT).show();
                 return;
             }
-        } catch (ScriptException e)
-        {
+            if (Double.isNaN((double) result)) {
+                Toast.makeText(this, "Invalid format used.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        } catch (ScriptException e) {
             Toast.makeText(this, "Invalid Input", Toast.LENGTH_SHORT).show();
         }
 
-        if(result != null){
-            // Display the calculation result on the TextView
-            resultsView.setText(String.valueOf(result.doubleValue()));
+        if (result != null) {
+            if (result instanceof Double) {
+                double doubleResult = (double) result;
+                if (doubleResult == (int) doubleResult) {
+                    // Check if the result is a whole number (integer)
+                    int intResult = (int) doubleResult;
+                    resultsView.setText(String.valueOf(intResult));
+                } else {
+                    resultsView.setText(String.valueOf(doubleResult));
+                }
+            } else if (result instanceof Integer) {
+                int intResult = (int) result;
+                resultsView.setText(String.valueOf(intResult));
+            }
         }
     }
+
+
 
     private void checkForPowerOf()
     {
